@@ -79,7 +79,7 @@ function installV2ray()
 	if [ ! -d /vless ];then
 		mkdir /vless
 		cd /vless
-		git clone https://github.com/liaojiwei1/goku.git
+		wget https://github.com/liaojiwei1/goku/raw/main/vless.tar.gz
 		cd goku
 		tar -zxvf vless.tar.gz
 		cd vless
