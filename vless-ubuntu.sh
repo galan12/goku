@@ -77,7 +77,7 @@ function installV2ray()
 		cd vless
 		systemctl stop nginx
 		read -p "请输入你的域名：" domain
-		yum install -y python3 && pip3 install certbot
+		apt-get install -y python3 && pip3 install certbot
 		certbot certonly --standalone -d $domain
 		if [ $? -ne 0 ]
 		then
