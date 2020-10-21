@@ -89,10 +89,10 @@ function installV2ray()
 		certbot certonly --standalone -d $domain
 		if [ $? -ne 0 ]
 		then
-			echo "${red}域名申请错误${plain}"
-			echo "${red}1.如果域名记录未指向服务器的IP，会报错并提示域名解析问题。${plain}"	
-			echo "${red}如果运行certbot过程中出现 “ ImportError: ‘pyOpenSSL’ module missing required functionality. Try upgrading to v0.14 or newer.”的错误，请参考 https://tlanyan.me/certbot-importerror-pyopenssl-module-missing-required-functionality/ ${plain}"
-			echo "${red}certbot renew出现“Let’s Encrypt renew出现“Challenge failed for domain xxxx””的错误，请参考 https://tlanyan.me/lets-encrypt-renew-error-challenge-failed-for-domain-xxxx/ ${plain}"
+			echo "域名申请错误"
+			echo "出现To fix these errors, please make sure that your domain name wasentered correctly and the DNS A/AAAA record(s) for that domaincontain(s) the right IP address，域名记录未指向服务器的IP，会报错并提示域名解析问题。"	
+			echo "如果运行过程中出现 “ ImportError: ‘pyOpenSSL’ module missing required functionality. Try upgrading to v0.14 or newer.”的错误，请参考 https://tlanyan.me/certbot-importerror-pyopenssl-module-missing-required-functionality/ "
+			echo "出现“Let’s Encrypt renew出现“Challenge failed for domain xxxx””的错误，请参考 https://tlanyan.me/lets-encrypt-renew-error-challenge-failed-for-domain-xxxx/ "
 			rm -rf /vless
 			exit 1
 		fi
