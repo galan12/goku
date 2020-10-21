@@ -64,6 +64,10 @@ function preinstall()
 function installV2ray()
 {
     echo 安装v2ray...
+    	pid=`ps -ef |grep v2ray|grep -v grep|awk 'NR==1{print $2}'`
+	kill $pid 
+	rm -rf /vless
+	rm -rf  /etc/nginx/conf.d/v2fly.conf
 	if [ ! -d /vless ];then
 		mkdir /vless
 		cd /vless
@@ -101,8 +105,8 @@ function installV2ray()
 		/bin/bash start.sh
 		echo "启动成功"
 	else
-		echo "可能是误删或者未卸载，请先执行命令: /bin/bash vless.sh uninstall"
-		exit
+		echo "启动失败"
+		exit 1
 	fi
 }
 
@@ -123,18 +127,10 @@ function uninstall()
 
 
 
-if [ $1 == install ]
-then
-	checkSystem
-	preinstall
-	installV2ray
-elif [ $1 == uninstall ]
-then
-	uninstall
-else
-	echo "参数请传install或者uninstall"
-	
-fi
+
+checkSystem
+preinstall
+installV2ray
 
 
 
