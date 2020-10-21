@@ -132,9 +132,18 @@ function uninstall()
 
 
 
-checkSystem
-preinstall
-installV2ray
+if [ $1 == install ]
+then
+	checkSystem
+	preinstall
+	installV2ray
+elif [ $1 == uninstall ]
+then
+	uninstall
+else
+	echo "参数请传install或者uninstall"
+	
+fi
 
 
 
