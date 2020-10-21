@@ -104,6 +104,10 @@ function installV2ray()
 		nginx -s reload
 		/bin/bash start.sh
 		echo "启动成功"
+		echo "uuid:  ${new_uuid}"
+		echo "域名： ${domain}"
+		echo "端口： 443"
+		echo ""
 	else
 		echo "启动失败"
 		exit 1
