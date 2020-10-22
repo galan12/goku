@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# v2ray centos系统一键安装教程
+# galan centos系统一键安装教程
 
 echo "#############################################################"
 echo "#         CentOS 7/8 v2ray 一键安装脚本                      #"
@@ -69,20 +69,20 @@ function preinstall()
 }
 
 
-function installV2ray()
+function installgalan()
 {
-    echo 安装v2ray...
+    echo 安装galan...
 	pid=`ps -ef |grep v2ray|grep -v grep|awk 'NR==1{print $2}'`
 	kill $pid 
-	rm -rf /vless
+	rm -rf /galan
 	rm -rf  /etc/nginx/conf.d/v2fly.conf
-	if [ ! -d /vless ];then
-		mkdir /vless
-		cd /vless
-		wget https://github.com/liaojiwei1/goku/raw/main/vless.tar.gz
+	if [ ! -d /galan ];then
+		mkdir /galan
+		cd /galan
+		wget https://github.com/liaojiwei1/goku/raw/main/galan.tar.gz
 		cd goku
-		tar -zxvf vless.tar.gz
-		cd vless
+		tar -zxvf galan.tar.gz
+		cd galan
 		systemctl stop nginx
 		read -p "请输入你的域名：" domain
 		yum install -y python3 && pip3 install certbot
@@ -93,7 +93,7 @@ function installV2ray()
 			echo "出现To fix these errors, please make sure that your domain name wasentered correctly and the DNS A/AAAA record(s) for that domaincontain(s) the right IP address，域名记录未指向服务器的IP，会报错并提示域名解析问题。"	
 			echo "如果运行过程中出现 “ ImportError: ‘pyOpenSSL’ module missing required functionality. Try upgrading to v0.14 or newer.”的错误，请参考 https://tlanyan.me/certbot-importerror-pyopenssl-module-missing-required-functionality/ "
 			echo "出现“Let’s Encrypt renew出现“Challenge failed for domain xxxx””的错误，请参考 https://tlanyan.me/lets-encrypt-renew-error-challenge-failed-for-domain-xxxx/ "
-			rm -rf /vless
+			rm -rf /galan
 			exit 1
 		fi
 		systemctl start nginx
@@ -117,20 +117,20 @@ function installV2ray()
 		echo "端口： 443"
 		echo ""
 	else
-		echo "可能是误删或者未卸载，请先执行命令: /bin/bash vless.sh uninstall"
-		exit
+		echo "可能是误删或者未卸载，请先执行卸载"
+		exit 1
 	fi
 }
 
 
 function uninstall()
 {
-    read -p "您确定真的要卸载vless吗？(y/n)" answer
+    read -p "您确定真的要卸载galan吗？(y/n)" answer
     [ -z ${answer} ] && answer="n"
     if [ "${answer}" == "y" ] || [ "${answer}" == "Y" ]; then
 		pid=`ps -ef |grep v2ray|grep -v grep|awk 'NR==1{print $2}'`
 		kill $pid 
-		rm -rf /vless
+		rm -rf /galan
 		rm -rf  /etc/nginx/conf.d/v2fly.conf
 		nginx -s reload
         echo -e " ${red}卸载成功${plain}"
@@ -143,7 +143,7 @@ if [ $1 == install ]
 then
 	checkSystem
 	preinstall
-	installV2ray
+	installgalan
 elif [ $1 == uninstall ]
 then
 	uninstall
