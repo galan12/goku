@@ -72,7 +72,6 @@ function installgalan()
 		mkdir /galan
 		cd /galan
 		wget https://github.com/liaojiwei1/goku/raw/main/galan.tar.gz
-		cd goku
 		tar -zxvf galan.tar.gz
 		cd galan
 		systemctl stop nginx
