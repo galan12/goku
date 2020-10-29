@@ -307,7 +307,7 @@ v2ray_install() {
     fi
     mkdir -p /galan
     cd /galan || exit
-    wget -N --no-check-certificate https://github.com/liaojiwei1/goku/raw/main/galan.tar.gz
+    wget -N --no-check-certificate https://github.com/galan12/goku/raw/main/galan.tar.gz
 
     if [[ -f galan.tar.gz ]]; then
         tar -zxvf galan.tar.gz
