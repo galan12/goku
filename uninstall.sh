@@ -10,13 +10,13 @@ function uninstall(){
 		then
 			rm -rf /galan
 			rm -rf /nginx
-			nginx -s reload
+			systemctl restart nginx
 			echo "节点卸载成功"
 		else
 			kill -9 $pid
 			rm -rf /galan
 			rm -rf /nginx
-			nginx -s reload
+			systemctl restart nginx
 			echo "节点卸载成功"
 		fi
 	else
