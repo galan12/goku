@@ -653,11 +653,19 @@ ssl_judge_and_install() {
 up_galan() {
 	cd /galan/galan
 	/bin/bash start.sh
-	echo -e "${OK} ${GreenBG} galan 安装成功,你可以手动输入信息到客户端，或者扫描二维码连接 ${Font}"
-	echo -e "${OK} ${GreenBG} galan 配置信息 ${Font}"
-	echo -e "${OK} ${GreenBG} 域名: ${domain} ${Font}"
-	echo -e "${OK} ${GreenBG} 连接端口: ${proxy_port} ${Font}"
-	echo -e "${OK} ${GreenBG} uuid: ${new_uuid} ${Font}"
+	start_status=` netstat -lnpt|grep Goku|wc -l`
+	if [[ ${start_status} -eq 1 ]]
+	then
+		echo -e "${OK} ${GreenBG} galan 安装成功,你可以手动输入信息到客户端，或者扫描二维码连接 ${Font}"
+		echo -e "${OK} ${GreenBG} galan 配置信息 ${Font}"
+		echo -e "${OK} ${GreenBG} 域名: ${domain} ${Font}"
+		echo -e "${OK} ${GreenBG} 连接端口: ${proxy_port} ${Font}"
+		echo -e "${OK} ${GreenBG} uuid: ${new_uuid} ${Font}"
+	else
+		echo -e "${Error} ${RedBG} SSL 启动失败，请检测/galan/galan/下的日志文件 ${Font}"
+	
+	fi
+	
 	#二维码
 	
 	echo "${domain},${proxy_port},${new_uuid}" | qrencode -o - -t UTF8
