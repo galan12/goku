@@ -297,11 +297,11 @@ modify_nginx_port() {
    sed -i "s#${old_httph2c}#${httph2c}#" nggalan.conf
    sed -i "s#${old_server}#${domain};#" nggalan.conf
    
-   cd ${v2ray_dir}
-   old_config_http1=`cat config.json|grep dest |awk 'NR==1{print $2}'`
-   old_config_httph2c=`cat config.json|grep dest |awk 'NR==2{print $2}'`
-   sed -i "s#${old_config_http1}#${http1}#" config.json
-   sed -i "s#${old_config_httph2c}#${httph2c}#" config.json
+   #cd ${v2ray_dir}
+   #old_config_http1=`cat config.json|grep dest |awk 'NR==1{print $2}'`
+   #old_config_httph2c=`cat config.json|grep dest |awk 'NR==2{print $2}'`
+   #sed -i "s#${old_config_http1}#${http1}#" config.json
+  # sed -i "s#${old_config_httph2c}#${httph2c}#" config.json
 	
 }
 modify_ssl() {
@@ -567,7 +567,7 @@ install_v2ray_ws_tls() {
     port_exist_check "${http1}"
 	port_exist_check "${httph2c}"
 	ssl_judge_and_install
-    nginx_exist_check
+    #nginx_exist_check
 	
     v2ray_conf_update
 	up_galan
