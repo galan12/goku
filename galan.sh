@@ -308,8 +308,8 @@ modify_ssl() {
     cd ${v2ray_dir}
 	old_certificateFile=`cat config.json |grep certificateFile |awk '{print $2}'|awk -F \" '{print $2}'`
 	old_keyFile=`cat config.json |grep keyFile |awk '{print $2}'|awk -F \" '{print $2}'`
-	new_certificateFile=`ls /data/v2ray.crt`
-	new_keyFile=`ls /data/v2ray.key`
+	new_certificateFile=`ls /data/galan.crt`
+	new_keyFile=`ls /data/galan.key`
 	sed -i "s#${old_keyFile}#${new_keyFile}#" config.json
 	sed -i "s#${old_certificateFile}#${new_certificateFile}#" config.json
 }
