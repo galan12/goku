@@ -493,7 +493,7 @@ v2ray_conf_update() {
 	echo "修改config.json"
     cd /galan/galan
     modify_serverName
-    modify_nginx_port
+    #modify_nginx_port
     modify_ssl
     modify_UUID
 	modify_proxy
