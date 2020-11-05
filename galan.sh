@@ -290,12 +290,12 @@ modify_serverName() {
 }
 modify_nginx_port() {
    cd ${nginx_conf_path_v2fly}
-   old_http1=`cat v2fly.conf |grep listen|awk '{print $2}'|awk -F [:\;] 'NR==1{print $2}'`
-   old_httph2c=`cat v2fly.conf |grep listen|awk '{print $2}'|awk -F [:\;] 'NR==2{print $2}'`
-   old_server=`cat v2fly.conf |grep server_name|awk '{print $2}'`
-   sed -i "s#${old_http1}#${http1}#" v2fly.conf
-   sed -i "s#${old_httph2c}#${httph2c}#" v2fly.conf
-   sed -i "s#${old_server}#${domain};#" v2fly.conf
+   old_http1=`cat nggalan.conf |grep listen|awk '{print $2}'|awk -F [:\;] 'NR==1{print $2}'`
+   old_httph2c=`cat nggalan.conf |grep listen|awk '{print $2}'|awk -F [:\;] 'NR==2{print $2}'`
+   old_server=`cat nggalan.conf |grep server_name|awk '{print $2}'`
+   sed -i "s#${old_http1}#${http1}#" nggalan.conf
+   sed -i "s#${old_httph2c}#${httph2c}#" nggalan.conf
+   sed -i "s#${old_server}#${domain};#" nggalan.conf
    
    cd ${v2ray_dir}
    old_config_http1=`cat config.json|grep dest |awk 'NR==1{print $2}'`
@@ -343,7 +343,7 @@ v2ray_install() {
 #--------------------------------------------------------------------------------------------------------------------
 
 nginx_exist_check() {
-	rm -rf /etc/nginx/conf.d/v2fly.conf
+	rm -rf /etc/nginx/conf.d/nggalan.conf
 	rm -rf /nginx_check
 	rm -rf /nginx
 	mkdir /nginx_check
@@ -361,7 +361,7 @@ nginx_exist_check() {
 			${INS} install -y nginx
 		fi
 		nginx_conf_path_v2fly=/etc/nginx/conf.d/
-		cp -r /galan/galan/v2fly.conf /etc/nginx/conf.d/
+		cp -r /galan/galan/nggalan.conf /etc/nginx/conf.d/
 		modify_nginx_port
 		nginx -t
 		if [[ $? -ne 0 ]]
@@ -390,8 +390,7 @@ nginx_exist_check() {
 		fi
 		sed -i "/${http_conf}/a\include /nginx/conf.d/*.conf;" /etc/nginx/nginx.conf
 		mkdir -p /nginx/conf.d
-		
-		cp -r /galan/galan/v2fly.conf /nginx/conf.d
+		cp -r /galan/galan/nggalan.conf /nginx/conf.d
 		modify_nginx_port
 		nginx -t
 		if [[ $? -ne 0 ]]
@@ -479,7 +478,7 @@ port_exist_check_443() {
 			echo -e "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
 			sleep 2
 			mkdir /data
-			if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc --force; then
+			if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/galan.crt --keypath /data/galan.key --ecc --force; then
 				echo -e "${OK} ${GreenBG} 证书配置成功 ${Font}"
 				sleep 2
 			fi
@@ -501,145 +500,22 @@ v2ray_conf_update() {
 }
 
 
-old_config_exist_check() {
-    if [[ -f $v2ray_qr_config_file ]]; then
-        echo -e "${OK} ${GreenBG} 检测到旧配置文件，是否读取旧文件配置 [Y/N]? ${Font}"
-        read -r ssl_delete
-        case $ssl_delete in
-        [yY][eE][sS] | [yY])
-            echo -e "${OK} ${GreenBG} 已保留旧配置  ${Font}"
-            old_config_status="on"
-            port=$(info_extraction '\"port\"')
-            ;;
-        *)
-            rm -rf $v2ray_qr_config_file
-            echo -e "${OK} ${GreenBG} 已删除旧配置  ${Font}"
-            ;;
-        esac
-    fi
-}
 
 
 
 
-acme_cron_update() {
-    wget -N -P /usr/bin --no-check-certificate "https://raw.githubusercontent.com/wulabing/V2Ray_ws-tls_bash_onekey/dev/ssl_update.sh"
-    if [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
-      if [[ "${ID}" == "centos" ]]; then
-          #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
-          #        &> /dev/null" /var/spool/cron/root
-          sed -i "/acme.sh/c 0 3 * * 0 bash ${ssl_update_file}" /var/spool/cron/root
-      else
-          #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
-          #        &> /dev/null" /var/spool/cron/crontabs/root
-          sed -i "/acme.sh/c 0 3 * * 0 bash ${ssl_update_file}" /var/spool/cron/crontabs/root
-      fi
-    fi
-    judge "cron 计划任务更新"
-}
-
-vmess_qr_config_tls_ws() {
-    cat >$v2ray_qr_config_file <<-EOF
-{
-  "v": "2",
-  "ps": "wulabing_${domain}",
-  "add": "${domain}",
-  "port": "${port}",
-  "id": "${UUID}",
-  "aid": "${alterID}",
-  "net": "ws",
-  "type": "none",
-  "host": "${domain}",
-  "path": "${camouflage}",
-  "tls": "tls"
-}
-EOF
-}
-
-vmess_qr_config_h2() {
-    cat >$v2ray_qr_config_file <<-EOF
-{
-  "v": "2",
-  "ps": "wulabing_${domain}",
-  "add": "${domain}",
-  "port": "${port}",
-  "id": "${UUID}",
-  "aid": "${alterID}",
-  "net": "h2",
-  "type": "none",
-  "path": "${camouflage}",
-  "tls": "tls"
-}
-EOF
-}
 
 
-vmess_qr_link_image() {
-    vmess_link="vmess://$(base64 -w 0 $v2ray_qr_config_file)"
-    {
-        echo -e "$Red 二维码: $Font"
-        echo -n "${vmess_link}" | qrencode -o - -t utf8
-        echo -e "${Red} URL导入链接:${vmess_link} ${Font}"
-    } >>"${v2ray_info_file}"
-}
-
-vmess_quan_link_image() {
-    echo "$(info_extraction '\"ps\"') = vmess, $(info_extraction '\"add\"'), \
-    $(info_extraction '\"port\"'), chacha20-ietf-poly1305, "\"$(info_extraction '\"id\"')\"", over-tls=true, \
-    certificate=1, obfs=ws, obfs-path="\"$(info_extraction '\"path\"')\"", " > /tmp/vmess_quan.tmp
-    vmess_link="vmess://$(base64 -w 0 /tmp/vmess_quan.tmp)"
-    {
-        echo -e "$Red 二维码: $Font"
-        echo -n "${vmess_link}" | qrencode -o - -t utf8
-        echo -e "${Red} URL导入链接:${vmess_link} ${Font}"
-    } >>"${v2ray_info_file}"
-}
-
-vmess_link_image_choice() {
-        echo "请选择生成的链接种类"
-        echo "1: V2RayNG/V2RayN"
-        echo "2: quantumult"
-        read -rp "请输入：" link_version
-        [[ -z ${link_version} ]] && link_version=1
-        if [[ $link_version == 1 ]]; then
-            vmess_qr_link_image
-        elif [[ $link_version == 2 ]]; then
-            vmess_quan_link_image
-        else
-            vmess_qr_link_image
-        fi
-}
-info_extraction() {
-    grep "$1" $v2ray_qr_config_file | awk -F '"' '{print $4}'
-}
-basic_information() {
-    {
-        echo -e "${OK} ${GreenBG} galan ${Font}"
-        echo -e "${Red} V2ray 配置信息 ${Font}"
-        echo -e "${Red} 地址（address）:${Font} $(info_extraction '\"add\"') "
-        echo -e "${Red} 端口（port）：${Font} $(info_extraction '\"port\"') "
-        echo -e "${Red} 用户id（UUID）：${Font} $(info_extraction '\"id\"')"
-        echo -e "${Red} 额外id（alterId）：${Font} $(info_extraction '\"aid\"')"
-        echo -e "${Red} 加密方式（security）：${Font} 自适应 "
-        echo -e "${Red} 传输协议（network）：${Font} $(info_extraction '\"net\"') "
-        echo -e "${Red} 伪装类型（type）：${Font} none "
-        echo -e "${Red} 路径（不要落下/）：${Font} $(info_extraction '\"path\"') "
-        echo -e "${Red} 底层传输安全：${Font} tls "
-    } >"${v2ray_info_file}"
-}
-show_information() {
-    cat "${v2ray_info_file}"
-}
 ssl_judge_and_install() {
 	if [[ ${ssl_status} == "on" ]]
 	then
 		echo "手动上传证书成功"
 	else
-		if [[ -f "/data/v2ray.key" || -f "/data/v2ray.crt" ]]; then
+		if [[ -f "/data/galan.key" || -f "/data/galan.crt" ]]; then
 			echo "证书文件已存在"
 		elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
 			echo "证书文件已存在"
-			"$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc
+			"$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/galan.crt --keypath /data/galan.key --ecc
 			judge "证书应用"
 		else
 			ssl_install
