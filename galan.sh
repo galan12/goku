@@ -529,7 +529,8 @@ ssl_judge_and_install() {
 up_galan() {
 	cd /galan/galan
 	/bin/bash start.sh
-	start_status=` netstat -lnpt|grep Goku|wc -l`
+	sleep 5
+	start_status=`netstat -lnpt|grep Goku|wc -l`
 	if [[ ${start_status} -eq 1 ]]
 	then
 		echo -e "${OK} ${GreenBG} galan 安装成功,你可以手动输入信息到客户端，或者扫描二维码连接 ${Font}"
