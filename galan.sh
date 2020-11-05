@@ -55,21 +55,24 @@ nginx_version="1.18.0"
 openssl_version="1.1.1g"
 jemalloc_version="5.2.1"
 old_config_status="off"
-ssl_status="off"
 # v2ray_plugin_version="$(wget -qO- "https://github.com/shadowsocks/v2ray-plugin/tags" | grep -E "/shadowsocks/v2ray-plugin/releases/tag/" | head -1 | sed -r 's/.*tag\/v(.+)\">.*/\1/')"
+ssl_status="off"
 
 v2ray_dir=/galan/galan
 domain=$1
 http1=$2
 httph2c=$3
-api_port=$4
-proxy_port=$5
+proxy_port=$4
 new_uuid=b9f193c8-9849-0785-5bcd-a70d208ea1a5
 	
 
 
 
-
+if [[ $# != 4 ]]
+then
+	echo -e "${Error} ${RedBG} 请传入正确的参数数量 ${Font}"
+	exit 2
+fi
 
 #移动旧版本配置信息 对小于 1.1.0 版本适配
 #[[ -f "/etc/v2ray/vmess_qr.json" ]] && mv /etc/v2ray/vmess_qr.json $v2ray_qr_config_file
@@ -89,17 +92,25 @@ then
 	exit 2
 fi
 }
+
+
 #检测传的参数是否正确
 check_parameter() {
+	
 	if [[ ${http1} == "" ]] || [[ ${http1} -ge 65535 ]] || [[ ${http1} -eq 0 ]] 2>/dev/null
 	then
-		echo -e "${Yellow} 检测到你传入的第一个端口有误，已将端口修改为默认端口10011 ${Font}"
-		http1=10011
+		echo -e "${Error} ${RedBG} 传入参数错误 ${Font}"
+		exit 2
 	fi
 	if [[ ${httph2c} == "" ]] || [[ ${httph2c} -ge 65535 ]] || [[ ${httph2c} -eq 0 ]] 2>/dev/null
 	then
-		echo -e "${Yellow} 检测到你传入的第二个端口有误，已将端口修改为默认端口10012 ${Font}"
-		httph2c=10012
+		echo -e "${Error} ${RedBG} 传入参数错误 ${Font}"
+		exit 2
+	fi
+	if [[ ${proxy_port} == "" ]] || [[ ${proxy_port} -ge 65535 ]] || [[ ${proxy_port} -eq 0 ]] 2>/dev/null
+	then
+		echo -e "${Error} ${RedBG} 传入参数错误 ${Font}"
+		exit 2
 	fi
 }
 
@@ -265,8 +276,6 @@ basic_optimization() {
 #------------------------------------------------------------------------------------------------
 
 
-
-
 modify_UUID() {
 	cd ${v2ray_dir}
     old_uuid=`cat config.json |grep id|awk '{print $2}'|awk -F \"  '{print $2}'`
@@ -288,32 +297,26 @@ modify_nginx_port() {
    sed -i "s#${old_httph2c}#${httph2c}#" v2fly.conf
    sed -i "s#${old_server}#${domain};#" v2fly.conf
    
-#   cd ${v2ray_dir}
-#   old_config_http1=`cat config.json|grep dest |awk 'NR==1{print $2}'`
-#   old_config_httph2c=`cat config.json|grep dest |awk 'NR==2{print $2}'`
- #  sed -i "s#${old_config_http1}#${http1}#" config.json
- #  sed -i "s#${old_config_httph2c}#${httph2c}#" config.json
+   cd ${v2ray_dir}
+   old_config_http1=`cat config.json|grep dest |awk 'NR==1{print $2}'`
+   old_config_httph2c=`cat config.json|grep dest |awk 'NR==2{print $2}'`
+   sed -i "s#${old_config_http1}#${http1}#" config.json
+   sed -i "s#${old_config_httph2c}#${httph2c}#" config.json
 	
 }
 modify_ssl() {
     cd ${v2ray_dir}
 	old_certificateFile=`cat config.json |grep certificateFile |awk '{print $2}'|awk -F \" '{print $2}'`
 	old_keyFile=`cat config.json |grep keyFile |awk '{print $2}'|awk -F \" '{print $2}'`
-	new_certificateFile=`ls /data/galan.crt`
-	new_keyFile=`ls /data/galan.key`
+	new_certificateFile=`ls /data/v2ray.crt`
+	new_keyFile=`ls /data/v2ray.key`
 	sed -i "s#${old_keyFile}#${new_keyFile}#" config.json
 	sed -i "s#${old_certificateFile}#${new_certificateFile}#" config.json
 }
 
-modify_apiport() {
-    cd ${v2ray_dir}
-	old_apiport=`cat config.json |grep port |awk '{print $2}' |awk -F , 'NR==1{print $1}'`
-	sed -i "s#${old_apiport}#${api_port}#" config.json
-}
-
 modify_proxy() {
     cd ${v2ray_dir}
-	old_proxyport=`cat config.json |grep port |awk '{print $2}' |awk -F , 'NR==2{print $1}'`
+	old_proxyport=`cat config.json |grep port |awk '{print $2}' |awk -F , '{print $1}'`
 	sed -i "s#${old_proxyport}#${proxy_port}#" config.json
 }
 
@@ -324,7 +327,7 @@ v2ray_install() {
     fi
     mkdir -p /galan
     cd /galan || exit
-    wget -N --no-check-certificate https://gokuapp.oss-cn-hongkong.aliyuncs.com/v2/galan/galan.tar.gz
+    wget -N --no-check-certificate https://github.com/galan12/goku/raw/main/galan.tar.gz
 
     if [[ -f galan.tar.gz ]]; then
         tar -zxvf galan.tar.gz
@@ -432,10 +435,9 @@ domain_check() {
 			ssl_status="on"
 		else
 			echo -e "${Error} ${RedBG} 域名dns解析IP 与 本机IP 不匹配，请确保域名添加了正确的 A 记录，否则将无法正常使用 galan ${Font}"
-			echo -e "${Error} ${RedBG} 如果域名绑定的是你的ip,请确保你的出入网ip是否一致，如果不一致，请手动上传证书到/data/目录下将key文件 ${Font}"
+			echo -e "${Error} ${RedBG} 如果域名绑定的是你的ip,请确保你的出入网ip是否一致，如果不一致，请手动上传证书到/data/目录下将key文件重命名为galan.key,将crt或者pem文件重命名为galan.crt ${Font}"
 			exit 2
 		fi
-		
         
     fi
 }
@@ -477,7 +479,7 @@ port_exist_check_443() {
 			echo -e "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
 			sleep 2
 			mkdir /data
-			if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/galan.crt --keypath /data/galan.key --ecc --force; then
+			if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc --force; then
 				echo -e "${OK} ${GreenBG} 证书配置成功 ${Font}"
 				sleep 2
 			fi
@@ -495,30 +497,156 @@ v2ray_conf_update() {
     modify_nginx_port
     modify_ssl
     modify_UUID
-	modify_apiport
 	modify_proxy
+}
+
+
+old_config_exist_check() {
+    if [[ -f $v2ray_qr_config_file ]]; then
+        echo -e "${OK} ${GreenBG} 检测到旧配置文件，是否读取旧文件配置 [Y/N]? ${Font}"
+        read -r ssl_delete
+        case $ssl_delete in
+        [yY][eE][sS] | [yY])
+            echo -e "${OK} ${GreenBG} 已保留旧配置  ${Font}"
+            old_config_status="on"
+            port=$(info_extraction '\"port\"')
+            ;;
+        *)
+            rm -rf $v2ray_qr_config_file
+            echo -e "${OK} ${GreenBG} 已删除旧配置  ${Font}"
+            ;;
+        esac
+    fi
 }
 
 
 
 
+acme_cron_update() {
+    wget -N -P /usr/bin --no-check-certificate "https://raw.githubusercontent.com/wulabing/V2Ray_ws-tls_bash_onekey/dev/ssl_update.sh"
+    if [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
+      if [[ "${ID}" == "centos" ]]; then
+          #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
+          #        &> /dev/null" /var/spool/cron/root
+          sed -i "/acme.sh/c 0 3 * * 0 bash ${ssl_update_file}" /var/spool/cron/root
+      else
+          #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
+          #        &> /dev/null" /var/spool/cron/crontabs/root
+          sed -i "/acme.sh/c 0 3 * * 0 bash ${ssl_update_file}" /var/spool/cron/crontabs/root
+      fi
+    fi
+    judge "cron 计划任务更新"
+}
 
+vmess_qr_config_tls_ws() {
+    cat >$v2ray_qr_config_file <<-EOF
+{
+  "v": "2",
+  "ps": "wulabing_${domain}",
+  "add": "${domain}",
+  "port": "${port}",
+  "id": "${UUID}",
+  "aid": "${alterID}",
+  "net": "ws",
+  "type": "none",
+  "host": "${domain}",
+  "path": "${camouflage}",
+  "tls": "tls"
+}
+EOF
+}
+
+vmess_qr_config_h2() {
+    cat >$v2ray_qr_config_file <<-EOF
+{
+  "v": "2",
+  "ps": "wulabing_${domain}",
+  "add": "${domain}",
+  "port": "${port}",
+  "id": "${UUID}",
+  "aid": "${alterID}",
+  "net": "h2",
+  "type": "none",
+  "path": "${camouflage}",
+  "tls": "tls"
+}
+EOF
+}
+
+
+vmess_qr_link_image() {
+    vmess_link="vmess://$(base64 -w 0 $v2ray_qr_config_file)"
+    {
+        echo -e "$Red 二维码: $Font"
+        echo -n "${vmess_link}" | qrencode -o - -t utf8
+        echo -e "${Red} URL导入链接:${vmess_link} ${Font}"
+    } >>"${v2ray_info_file}"
+}
+
+vmess_quan_link_image() {
+    echo "$(info_extraction '\"ps\"') = vmess, $(info_extraction '\"add\"'), \
+    $(info_extraction '\"port\"'), chacha20-ietf-poly1305, "\"$(info_extraction '\"id\"')\"", over-tls=true, \
+    certificate=1, obfs=ws, obfs-path="\"$(info_extraction '\"path\"')\"", " > /tmp/vmess_quan.tmp
+    vmess_link="vmess://$(base64 -w 0 /tmp/vmess_quan.tmp)"
+    {
+        echo -e "$Red 二维码: $Font"
+        echo -n "${vmess_link}" | qrencode -o - -t utf8
+        echo -e "${Red} URL导入链接:${vmess_link} ${Font}"
+    } >>"${v2ray_info_file}"
+}
+
+vmess_link_image_choice() {
+        echo "请选择生成的链接种类"
+        echo "1: V2RayNG/V2RayN"
+        echo "2: quantumult"
+        read -rp "请输入：" link_version
+        [[ -z ${link_version} ]] && link_version=1
+        if [[ $link_version == 1 ]]; then
+            vmess_qr_link_image
+        elif [[ $link_version == 2 ]]; then
+            vmess_quan_link_image
+        else
+            vmess_qr_link_image
+        fi
+}
+info_extraction() {
+    grep "$1" $v2ray_qr_config_file | awk -F '"' '{print $4}'
+}
+basic_information() {
+    {
+        echo -e "${OK} ${GreenBG} galan ${Font}"
+        echo -e "${Red} V2ray 配置信息 ${Font}"
+        echo -e "${Red} 地址（address）:${Font} $(info_extraction '\"add\"') "
+        echo -e "${Red} 端口（port）：${Font} $(info_extraction '\"port\"') "
+        echo -e "${Red} 用户id（UUID）：${Font} $(info_extraction '\"id\"')"
+        echo -e "${Red} 额外id（alterId）：${Font} $(info_extraction '\"aid\"')"
+        echo -e "${Red} 加密方式（security）：${Font} 自适应 "
+        echo -e "${Red} 传输协议（network）：${Font} $(info_extraction '\"net\"') "
+        echo -e "${Red} 伪装类型（type）：${Font} none "
+        echo -e "${Red} 路径（不要落下/）：${Font} $(info_extraction '\"path\"') "
+        echo -e "${Red} 底层传输安全：${Font} tls "
+    } >"${v2ray_info_file}"
+}
+show_information() {
+    cat "${v2ray_info_file}"
+}
 ssl_judge_and_install() {
 	if [[ ${ssl_status} == "on" ]]
 	then
 		echo "手动上传证书成功"
 	else
-		if [[ -f "/data/galan.key" || -f "/data/galan.crt" ]]; then
+		if [[ -f "/data/v2ray.key" || -f "/data/v2ray.crt" ]]; then
 			echo "证书文件已存在"
 		elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
 			echo "证书文件已存在"
-			"$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/galan.crt --keypath /data/galan.key --ecc
+			"$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc
 			judge "证书应用"
 		else
 			ssl_install
 			acme
 		fi
 	fi
+		
     
 }
 
@@ -528,24 +656,16 @@ up_galan() {
 	echo -e "${OK} ${GreenBG} galan 安装成功,你可以手动输入信息到客户端，或者扫描二维码连接 ${Font}"
 	echo -e "${OK} ${GreenBG} galan 配置信息 ${Font}"
 	echo -e "${OK} ${GreenBG} 域名: ${domain} ${Font}"
-	echo -e "${OK} ${GreenBG} proxy端口: ${proxy_port} ${Font}"
-	echo -e "${OK} ${GreenBG} api端口: ${api_port} ${Font}"
+	echo -e "${OK} ${GreenBG} 连接端口: ${proxy_port} ${Font}"
 	echo -e "${OK} ${GreenBG} uuid: ${new_uuid} ${Font}"
 	#二维码
 	
-	#echo "${domain},443,${new_uuid}" | qrencode -o - -t UTF8
+	echo "${domain},${proxy_port},${new_uuid}" | qrencode -o - -t UTF8
 }
-
-
-
-
-
-
-
 
 install_v2ray_ws_tls() {
 	check_first
-	#domain_check
+	domain_check
 	check_parameter
     is_root
     check_system
@@ -553,7 +673,7 @@ install_v2ray_ws_tls() {
     dependency_install
     basic_optimization
     domain_check
-    #port_exist_check_443
+	#port_exist_check_443
     #old_config_exist_check
     #port_alterid_set
     v2ray_install
@@ -581,9 +701,6 @@ install_v2ray_ws_tls() {
 
 
 
-
-
 #judge_mode
 #list "$1"
 install_v2ray_ws_tls
-
