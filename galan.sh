@@ -8,11 +8,10 @@ cd "$(
 )" || exit
 #====================================================
 #	System Request:Debian 9+/Ubuntu 18.04+/Centos 7+
-#	Author:	wulabing
-#	Dscription: V2ray ws+tls onekey Management
+#	Author:	galan
 #	Version: 1.0
 #	email:admin@wulabing.com
-#	Official document: www.v2ray.com
+#	Official document: https://www.goku.one
 #====================================================
 
 #fonts color
@@ -552,7 +551,7 @@ up_galan() {
 	echo "${domain},${proxy_port},${new_uuid}" | qrencode -o - -t UTF8
 }
 
-install_v2ray_ws_tls() {
+install_goku() {
 	check_first
 	domain_check
 	check_parameter
@@ -592,4 +591,4 @@ install_v2ray_ws_tls() {
 
 #judge_mode
 #list "$1"
-install_v2ray_ws_tls
+install_goku
