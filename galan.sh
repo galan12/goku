@@ -548,7 +548,7 @@ up_galan() {
 	
 	#二维码
 	
-	echo "${domain},${proxy_port},${new_uuid}" | qrencode -o - -t UTF8
+	echo -e "${domain},${proxy_port},${new_uuid}" | qrencode -o - -t UTF8
 }
 
 install_goku() {
