@@ -507,6 +507,10 @@ v2ray_conf_update() {
 
 
 ssl_judge_and_install() {
+	if [[ ! -d /data ]]
+	then
+		mkdir /data
+	fi
 	if [[ ${ssl_status} == "on" ]]
 	then
 		echo "手动上传证书成功"
